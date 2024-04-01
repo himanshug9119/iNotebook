@@ -12,7 +12,7 @@ router.post("/gemini", async (req, res) => {
   const prompt = req.body.prompt;
   console.log(prompt);
   const result = await model.generateContent(prompt);
-  const response = await result.response;
+  const response = result.response;
   const text = response.text();
   console.log(text);
   res.send(text);
