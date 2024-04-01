@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const fetchUser = require("../middleware/fetchUser");
-const Notes = require("../models/Notes");
+const fetchUser = require("../middleware/fetchUser"); // Middleware to fetch user details
+const Notes = require("../models/Notes"); // Importing the Notes model
 
 // Create a new note
 router.post("/createnote", fetchUser, async (req, res) => {
@@ -15,6 +15,7 @@ router.post("/createnote", fetchUser, async (req, res) => {
         .json({ error: "Title and description are required" });
     }
 
+    // Create a new note object
     const newNote = new Notes({
       title,
       description,
@@ -22,7 +23,10 @@ router.post("/createnote", fetchUser, async (req, res) => {
       tag,
     });
 
+    // Save the new note to the database
     const savedNote = await newNote.save();
+
+    // Send response
     res
       .status(201)
       .json({ message: "Note created successfully", note: savedNote });
@@ -35,19 +39,23 @@ router.post("/createnote", fetchUser, async (req, res) => {
 // Fetch all notes for a user
 router.get("/fetchallnotes", fetchUser, async (req, res) => {
   try {
+    // Retrieve all notes associated with the logged-in user
     const notes = await Notes.find({ user: req.user.id });
 
+    // Check if any notes are found
     if (notes.length === 0) {
       return res.status(404).json({ message: "No notes found" });
     }
 
+    // Send the retrieved notes as response
     res.json(notes);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
   }
 });
-// Update
+
+// Update a note
 router.put("/updatenote/:id", fetchUser, async (req, res) => {
   try {
     const { title, description, tag } = req.body;
@@ -71,13 +79,14 @@ router.put("/updatenote/:id", fetchUser, async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // Update the note
+    // Update the note in the database
     const updatedNote = await Notes.findByIdAndUpdate(
       req.params.id,
       { $set: updatedFields },
       { new: true }
     );
 
+    // Send the updated note as response
     res
       .status(200)
       .json({ message: "Note updated successfully", data: updatedNote });
@@ -86,12 +95,13 @@ router.put("/updatenote/:id", fetchUser, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
 // Delete a Note
 router.delete("/deletenote/:id", fetchUser, async (req, res) => {
   try {
     // Find the existing note by ID
     const existingNote = await Notes.findById(req.params.id);
-    
+
     // Check if the note exists
     if (!existingNote) {
       return res.status(404).json({ message: "Note not found" });
@@ -105,6 +115,7 @@ router.delete("/deletenote/:id", fetchUser, async (req, res) => {
     // Remove the note from the database
     const result = await Notes.findByIdAndDelete(req.params.id);
 
+    // Check if the note was deleted successfully
     if (result) {
       res.status(200).json({ message: "Deleted Successfully!" });
     } else {
